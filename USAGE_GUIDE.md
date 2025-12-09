@@ -18,7 +18,7 @@ Complete guide with real-world examples for building education apps.
 dependencies:
   edu_ui_kit:
     git:
-      url: https://github.com/yourusername/edu_ui_kit.git
+      url: https://github.com/mixin27/edu_ui_kit.git
   table_calendar: ^3.1.2
 ```
 

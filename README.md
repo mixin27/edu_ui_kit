@@ -21,7 +21,7 @@ Add to your `pubspec.yaml`:
 dependencies:
   edu_ui_kit:
     git:
-      url: https://github.com/yourusername/edu_ui_kit.git
+      url: https://github.com/mixin27/edu_ui_kit.git
 ```
 
 ## 🚀 Quick Start

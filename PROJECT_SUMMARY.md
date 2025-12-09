@@ -313,7 +313,7 @@ Reports Tab:
 dependencies:
   edu_ui_kit:
     git:
-      url: https://github.com/yourusername/edu_ui_kit.git
+      url: https://github.com/mixin27/edu_ui_kit.git
   table_calendar: ^3.1.2  # For calendar features
 ```
 

@@ -223,7 +223,7 @@ Perfect for:
 dependencies:
   edu_ui_kit:
     git:
-      url: https://github.com/yourusername/edu_ui_kit.git
+      url: https://github.com/mixin27/edu_ui_kit.git
 ```
 
 ```dart
@@ -349,9 +349,8 @@ None reported yet.
 ## Support
 
 For issues, questions, or feature requests:
-- 📧 Email: support@yourdomain.com
-- 🐛 Issues: https://github.com/yourusername/edu_ui_kit/issues
-- 💬 Discussions: https://github.com/yourusername/edu_ui_kit/discussions
+- 📧 Email: kyawzayartun.contact@gmail.com
+- 🐛 Issues: https://github.com/mixin27/edu_ui_kit/issues
 
 ---
 
