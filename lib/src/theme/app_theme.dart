@@ -184,7 +184,9 @@ class AppTheme {
         elevation: AppElevation.lg,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.dialogRadius),
         titleTextStyle: textTheme.headlineSmall,
-        contentTextStyle: textTheme.bodyMedium,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface,
+        ),
       ),
 
       // Bottom sheet theme
@@ -206,7 +208,9 @@ class AppTheme {
       // Chip theme
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: AppRadius.chipRadius),
-        labelStyle: textTheme.labelMedium,
+        labelStyle: textTheme.labelMedium?.copyWith(
+          color: colorScheme.secondary,
+        ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
@@ -216,7 +220,7 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.outline.withValues(alpha: 0.2),
+        color: colorScheme.outline.withValues(alpha: 0.3),
         thickness: 1,
         space: 1,
       ),
@@ -510,7 +514,9 @@ class AppTheme {
       // Chip theme
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: AppRadius.chipRadius),
-        labelStyle: textTheme.labelMedium,
+        labelStyle: textTheme.labelMedium?.copyWith(
+          color: colorScheme.secondary,
+        ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
@@ -520,7 +526,7 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.outline.withValues(alpha: 0.2),
+        color: colorScheme.outline.withValues(alpha: 0.3),
         thickness: 1,
         space: 1,
       ),

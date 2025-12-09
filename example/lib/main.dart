@@ -1,20 +1,22 @@
 import 'package:edu_ui_kit/edu_ui_kit.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/material.dart' hide PaginatedDataTable;
+
+import 'screens/showcasing_screen.dart';
 
 void main() {
-  runApp(const EduUIKitExampleApp());
+  runApp(const EduUIKitGalleryApp());
 }
 
-class EduUIKitExampleApp extends StatefulWidget {
-  const EduUIKitExampleApp({super.key});
+class EduUIKitGalleryApp extends StatefulWidget {
+  const EduUIKitGalleryApp({super.key});
 
   @override
-  State<EduUIKitExampleApp> createState() => _EduUIKitExampleAppState();
+  State<EduUIKitGalleryApp> createState() => _EduUIKitGalleryAppState();
 }
 
-class _EduUIKitExampleAppState extends State<EduUIKitExampleApp> {
+class _EduUIKitGalleryAppState extends State<EduUIKitGalleryApp> {
   ThemeMode _themeMode = ThemeMode.light;
+  ColorTokens _colorTokens = ColorTokens();
 
   void _toggleTheme() {
     setState(() {
@@ -24,1188 +26,776 @@ class _EduUIKitExampleAppState extends State<EduUIKitExampleApp> {
     });
   }
 
+  void _changeTheme(ColorTokens colors) {
+    setState(() {
+      _colorTokens = colors;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'EduUIKit Showcase',
-      theme: AppTheme.lightTheme(
-        colors: ColorTokens(primary: Colors.brown, secondary: Colors.amber),
-        fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
-      ),
-      darkTheme: AppTheme.darkTheme(
-        colors: ColorTokens(primary: Colors.brown, secondary: Colors.amber),
-        fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
-      ),
+      title: 'edu_ui_kit Gallery',
+      theme: AppTheme.lightTheme(colors: _colorTokens),
+      darkTheme: AppTheme.darkTheme(colors: _colorTokens),
       themeMode: _themeMode,
-      home: ShowcaseHome(onToggleTheme: _toggleTheme),
+      home: GalleryHome(
+        onToggleTheme: _toggleTheme,
+        onChangeTheme: _changeTheme,
+        currentTheme: _themeMode,
+      ),
     );
   }
 }
 
-class ShowcaseHome extends StatefulWidget {
-  const ShowcaseHome({super.key, required this.onToggleTheme});
+class GalleryHome extends StatefulWidget {
+  const GalleryHome({
+    super.key,
+    required this.onToggleTheme,
+    required this.onChangeTheme,
+    required this.currentTheme,
+  });
 
   final VoidCallback onToggleTheme;
+  final void Function(ColorTokens) onChangeTheme;
+  final ThemeMode currentTheme;
 
   @override
-  State<ShowcaseHome> createState() => _ShowcaseHomeState();
+  State<GalleryHome> createState() => _GalleryHomeState();
 }
 
-class _ShowcaseHomeState extends State<ShowcaseHome> {
-  int _currentIndex = 0;
+class _GalleryHomeState extends State<GalleryHome> {
+  int _selectedIndex = 0;
+  String _searchQuery = '';
 
-  final List<Widget> _pages = const [
-    ButtonsShowcase(),
-    CardsShowcase(),
-    InputsShowcase(),
-    LoadingShowcase(),
-    FeedbackShowcase(),
-    StatesShowcase(),
-    EducationShowcase(),
+  final List<ComponentCategory> _categories = [
+    ComponentCategory(
+      name: 'Foundation',
+      icon: Icons.foundation,
+      components: [
+        ComponentItem('Theme', 'Color & typography system'),
+        ComponentItem('Spacing', 'Consistent spacing scale'),
+        ComponentItem('Colors', 'Semantic color tokens'),
+        ComponentItem('Typography', 'Text styles'),
+        ComponentItem('Animations', 'Motion design'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Buttons',
+      icon: Icons.smart_button,
+      components: [
+        ComponentItem('AppButton', 'Filled, outlined, text, elevated'),
+        ComponentItem('AppIconButton', 'Icon-only buttons'),
+        ComponentItem('Loading States', 'Button with spinner'),
+        ComponentItem('Sizes', 'Small, medium, large'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Cards',
+      icon: Icons.credit_card,
+      components: [
+        ComponentItem('AppCard', 'Elevated, outlined, filled'),
+        ComponentItem('AppGlassCard', 'Glassmorphic effect'),
+        ComponentItem('Interactive', 'Hover & tap animations'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Inputs',
+      icon: Icons.edit,
+      components: [
+        ComponentItem('AppTextField', 'Text input with validation'),
+        ComponentItem('AppDropdown', 'Selection dropdown'),
+        ComponentItem('AppGlassTextField', 'Glass effect input'),
+        ComponentItem('Validation', 'Built-in validators'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Loading',
+      icon: Icons.hourglass_empty,
+      components: [
+        ComponentItem('AppLoadingIndicator', 'Circular spinners'),
+        ComponentItem('AppProgressBar', 'Linear progress'),
+        ComponentItem('AppShimmer', 'Skeleton loading'),
+        ComponentItem('Skeletons', 'List & card placeholders'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Feedback',
+      icon: Icons.feedback,
+      components: [
+        ComponentItem('Snackbars', 'Success, error, warning, info'),
+        ComponentItem('Toasts', 'Top/bottom notifications'),
+        ComponentItem('Dialogs', 'Alerts & confirmations'),
+        ComponentItem('Bottom Sheets', 'Modal sheets'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'States',
+      icon: Icons.error_outline,
+      components: [
+        ComponentItem('Empty State', 'No data view'),
+        ComponentItem('Error State', 'Error handling'),
+        ComponentItem('Network Error', 'Connection issues'),
+        ComponentItem('Coming Soon', 'Unavailable features'),
+        ComponentItem('Maintenance', 'System down'),
+        ComponentItem('No Permission', 'Access denied'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Navigation',
+      icon: Icons.navigation,
+      components: [
+        ComponentItem('AppBar', 'Top app bars'),
+        ComponentItem('Search Bar', 'Live search'),
+        ComponentItem('Sliver Bar', 'Collapsible headers'),
+        ComponentItem('Bottom Bar', 'Navigation bar'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Calendar',
+      icon: Icons.calendar_today,
+      components: [
+        ComponentItem('AppCalendar', 'Full calendar with events'),
+        ComponentItem('Date Picker', 'Single date selection'),
+        ComponentItem('Date Range', 'Range selection'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Education',
+      icon: Icons.school,
+      components: [
+        ComponentItem('Course Card', 'Course with progress'),
+        ComponentItem('Grade Card', 'Color-coded grades'),
+        ComponentItem('Attendance', 'Visual stats'),
+        ComponentItem('Assignment', 'Status & due dates'),
+        ComponentItem('Student Avatar', 'Profile pictures'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Lists',
+      icon: Icons.list,
+      components: [
+        ComponentItem('AppListTile', 'Enhanced list items'),
+        ComponentItem('Expandable Tile', 'Collapsible sections'),
+        ComponentItem('Swipeable Tile', 'Swipe actions'),
+        ComponentItem('Notification Tile', 'With timestamps'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Tables',
+      icon: Icons.table_chart,
+      components: [
+        ComponentItem('Data Table', 'Sortable columns'),
+        ComponentItem('Paginated Table', 'With pagination'),
+        ComponentItem('Grade Table', 'Specialized for grades'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Adaptive',
+      icon: Icons.phone_android,
+      components: [
+        ComponentItem('Adaptive Button', 'iOS/Android styles'),
+        ComponentItem('Adaptive Dialog', 'Platform dialogs'),
+        ComponentItem('Adaptive Switch', 'Platform toggles'),
+        ComponentItem('Date/Time Pickers', 'Platform pickers'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Chat',
+      icon: Icons.chat_bubble,
+      components: [
+        ComponentItem('Chat Bubble', 'Message bubbles'),
+        ComponentItem('Chat Input', 'Message composer'),
+        ComponentItem('Chat List', 'Conversation list'),
+        ComponentItem('Typing Indicator', 'Live typing status'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'File Upload',
+      icon: Icons.upload_file,
+      components: [
+        ComponentItem('File Upload', 'Drag & drop upload'),
+        ComponentItem('File Picker', 'File selection'),
+        ComponentItem('File Preview', 'File cards'),
+      ],
+    ),
+    ComponentCategory(
+      name: 'Rich Text',
+      icon: Icons.text_fields,
+      components: [
+        ComponentItem('Rich Editor', 'WYSIWYG editor'),
+        ComponentItem('Toolbar', 'Formatting options'),
+        ComponentItem('Rich Viewer', 'Display formatted text'),
+      ],
+    ),
   ];
+
+  List<ComponentCategory> get _filteredCategories {
+    if (_searchQuery.isEmpty) return _categories;
+
+    return _categories.where((category) {
+      final matchesCategory = category.name.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+      final matchesComponent = category.components.any(
+        (component) =>
+            component.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            component.description.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            ),
+      );
+      return matchesCategory || matchesComponent;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isMediumScreen = context.isMediumScreen;
 
     return Scaffold(
+      drawer: Drawer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  end: Alignment.topCenter,
+                  begin: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(
+                      context,
+                    ).colorScheme.secondary.withValues(alpha: 0.8),
+                    Theme.of(
+                      context,
+                    ).colorScheme.secondary.withValues(alpha: 0.4),
+                  ],
+                ),
+              ),
+              child: Text('Drawer'),
+            ),
+            AppListTile(title: 'Home', onTap: () {}),
+          ],
+        ),
+      ),
       appBar: AppBar(
-        title: AppBarTitle(text: 'EduUIKit Showcase'),
+        title: const Text('edu_ui_kit Gallery'),
         actions: [
+          // Theme selector
+          PopupMenuButton<ColorTokens>(
+            icon: const Icon(Icons.palette_outlined),
+            tooltip: 'Change theme',
+            onSelected: widget.onChangeTheme,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: ColorTokens(primary: const Color(0xFF667eea)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF667eea),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Text('Default (Purple-Blue)'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: ColorTokens(primary: const Color(0xFF10b981)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10b981),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Text('Student (Green)'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: ColorTokens(primary: const Color(0xFF9333ea)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF9333ea),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Text('Instructor (Purple)'),
+                  ],
+                ),
+              ),
+            ],
+          ),
           AppIconButton(
-            icon: theme.brightness == Brightness.light
+            icon: widget.currentTheme == ThemeMode.light
                 ? Icons.dark_mode_outlined
                 : Icons.light_mode_outlined,
             onPressed: widget.onToggleTheme,
             tooltip: 'Toggle theme',
           ),
+          AppIconButton(
+            icon: Icons.widgets_outlined,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ShowcaseHome(onToggleTheme: widget.onToggleTheme),
+                ),
+              );
+            },
+            tooltip: 'Toggle theme',
+          ),
           const SizedBox(width: AppSpacing.sm),
         ],
       ),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.smart_button_outlined),
-            selectedIcon: Icon(Icons.smart_button),
-            label: 'Buttons',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.credit_card_outlined),
-            selectedIcon: Icon(Icons.credit_card),
-            label: 'Cards',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.edit_outlined),
-            selectedIcon: Icon(Icons.edit),
-            label: 'Inputs',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.hourglass_empty_outlined),
-            selectedIcon: Icon(Icons.hourglass_empty),
-            label: 'Loading',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.feedback_outlined),
-            selectedIcon: Icon(Icons.feedback),
-            label: 'Feedback',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.error_outline),
-            selectedIcon: Icon(Icons.error),
-            label: 'States',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Education',
-          ),
+      body: Row(
+        children: [
+          if (isMediumScreen)
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.grid_view_outlined),
+                  selectedIcon: Icon(Icons.grid_view),
+                  label: Text('Overview'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.code_outlined),
+                  selectedIcon: Icon(Icons.code),
+                  label: Text('Components'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.info_outlined),
+                  selectedIcon: Icon(Icons.info),
+                  label: Text('About'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.bug_report_outlined),
+                  selectedIcon: Icon(Icons.bug_report),
+                  label: Text('Test'),
+                ),
+              ],
+            ),
+          Expanded(child: _buildContent()),
         ],
       ),
-    );
-  }
-}
-
-// Buttons Showcase
-class ButtonsShowcase extends StatefulWidget {
-  const ButtonsShowcase({super.key});
-
-  @override
-  State<ButtonsShowcase> createState() => _ButtonsShowcaseState();
-}
-
-class _ButtonsShowcaseState extends State<ButtonsShowcase> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: AppSpacing.pagePadding,
-      children: [
-        Text('Buttons', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Filled Buttons
-        _Section(
-          title: 'Filled Buttons',
-          children: [
-            AppButton(text: 'Primary Button', onPressed: () {}),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(text: 'With Icon', icon: Icons.send, onPressed: () {}),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Loading',
-              isLoading: _isLoading,
-              onPressed: () {
-                setState(() => _isLoading = true);
-                Future.delayed(const Duration(seconds: 2), () {
-                  setState(() => _isLoading = false);
-                });
+      bottomNavigationBar: !isMediumScreen
+          ? NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() => _selectedIndex = index);
               },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(text: 'Disabled', onPressed: null),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        // Outlined Buttons
-        _Section(
-          title: 'Outlined Buttons',
-          children: [
-            AppButton.outlined(text: 'Outlined', onPressed: () {}),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton.outlined(
-              text: 'With Icon',
-              icon: Icons.download,
-              onPressed: () {},
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        // Text Buttons
-        _Section(
-          title: 'Text Buttons',
-          children: [
-            AppButton.text(text: 'Text Button', onPressed: () {}),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton.text(
-              text: 'With Icon',
-              icon: Icons.info_outline,
-              onPressed: () {},
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        // Icon Buttons
-        _Section(
-          title: 'Icon Buttons',
-          children: [
-            Row(
-              children: [
-                AppIconButton(
-                  icon: Icons.favorite_border,
-                  onPressed: () {},
-                  tooltip: 'Like',
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.grid_view_outlined),
+                  selectedIcon: Icon(Icons.grid_view),
+                  label: 'Overview',
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                AppIconButton.filled(
-                  icon: Icons.share,
-                  onPressed: () {},
-                  tooltip: 'Share',
+                NavigationDestination(
+                  icon: Icon(Icons.code_outlined),
+                  selectedIcon: Icon(Icons.code),
+                  label: 'Components',
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                AppIconButton.outlined(
-                  icon: Icons.bookmark_border,
-                  onPressed: () {},
-                  tooltip: 'Bookmark',
+                NavigationDestination(
+                  icon: Icon(Icons.info_outlined),
+                  selectedIcon: Icon(Icons.info),
+                  label: 'About',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.bug_report_outlined),
+                  selectedIcon: Icon(Icons.bug_report),
+                  label: 'Test',
                 ),
               ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        // Button Sizes
-        _Section(
-          title: 'Button Sizes',
-          children: [
-            AppButton(
-              text: 'Small',
-              size: AppButtonSize.small,
-              onPressed: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Medium',
-              size: AppButtonSize.medium,
-              onPressed: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Large',
-              size: AppButtonSize.large,
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Cards Showcase
-class CardsShowcase extends StatelessWidget {
-  const CardsShowcase({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: AppSpacing.pagePadding,
-      children: [
-        Text('Cards', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
-
-        _Section(
-          title: 'Elevated Card',
-          children: [
-            AppCard.elevated(
-              onTap: () {},
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Elevated Card', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'This card has a shadow effect. Hover or tap to see the animation.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Outlined Card',
-          children: [
-            AppCard.outlined(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Outlined Card', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'This card has a border instead of shadow.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Filled Card',
-          children: [
-            AppCard.filled(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Filled Card', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'This card has a filled background color.',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Glass Card',
-          children: [
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.secondary,
-                  ],
-                ),
-                borderRadius: AppRadius.cardRadius,
-              ),
-              child: Center(
-                child: AppGlassCard(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Glass Card', style: theme.textTheme.titleLarge),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Beautiful glassmorphic effect with blur and transparency.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Inputs Showcase
-class InputsShowcase extends StatefulWidget {
-  const InputsShowcase({super.key});
-
-  @override
-  State<InputsShowcase> createState() => _InputsShowcaseState();
-}
-
-class _InputsShowcaseState extends State<InputsShowcase> {
-  String? _selectedGrade;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: AppSpacing.pagePadding,
-      children: [
-        Text('Input Fields', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
-
-        _Section(
-          title: 'Text Fields',
-          children: [
-            const AppTextField(
-              label: 'Name',
-              hint: 'Enter your name',
-              prefixIcon: Icons.person_outline,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const AppTextField(
-              label: 'Email',
-              hint: 'Enter your email',
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const AppTextField(
-              label: 'Password',
-              hint: 'Enter your password',
-              prefixIcon: Icons.lock_outline,
-              obscureText: true,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const AppTextField(
-              label: 'Bio',
-              hint: 'Tell us about yourself',
-              maxLines: 4,
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Dropdown',
-          children: [
-            AppDropdown<String>(
-              label: 'Grade',
-              hint: 'Select grade',
-              prefixIcon: Icons.school_outlined,
-              value: _selectedGrade,
-              items: const ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'],
-              onChanged: (value) => setState(() => _selectedGrade = value),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Glass Text Field',
-          children: [
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.tertiary,
-                  ],
-                ),
-                borderRadius: AppRadius.cardRadius,
-              ),
-              padding: AppSpacing.paddingMD,
-              child: const Center(
-                child: AppGlassTextField(
-                  label: 'Username',
-                  hint: 'Enter username',
-                  prefixIcon: Icons.account_circle_outlined,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Loading Showcase
-class LoadingShowcase extends StatelessWidget {
-  const LoadingShowcase({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: AppSpacing.pagePadding,
-      children: [
-        Text('Loading States', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
-
-        _Section(
-          title: 'Loading Indicators',
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: const [
-                AppLoadingIndicator.small(),
-                AppLoadingIndicator(),
-                AppLoadingIndicator.large(),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const AppLoadingIndicator(text: 'Loading data...'),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Progress Bar',
-          children: [
-            const AppProgressBar(value: 0.3),
-            const SizedBox(height: AppSpacing.md),
-            const AppProgressBar(value: 0.7),
-            const SizedBox(height: AppSpacing.md),
-            const AppProgressBar(), // Indeterminate
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Shimmer Loading',
-          children: [
-            AppListItemSkeleton(),
-            AppListItemSkeleton(),
-            const SizedBox(height: AppSpacing.lg),
-            AppCardSkeleton(height: 220),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// Feedback Showcase
-class FeedbackShowcase extends StatelessWidget {
-  const FeedbackShowcase({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: AppSpacing.pagePadding,
-      children: [
-        Text('Feedback', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
-
-        _Section(
-          title: 'Snackbars',
-          children: [
-            AppButton(
-              text: 'Show Snackbar',
-              onPressed: () {
-                AppSnackbar.show(
-                  context,
-                  message: 'This is a standard snackbar',
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Success',
-              onPressed: () {
-                AppSnackbar.success(
-                  context,
-                  message: 'Task completed successfully!',
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Error',
-              onPressed: () {
-                AppSnackbar.error(
-                  context,
-                  message: 'Something went wrong',
-                  action: SnackBarAction(label: 'Retry', onPressed: () {}),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Warning',
-              onPressed: () {
-                AppSnackbar.warning(
-                  context,
-                  message: 'Please review your input',
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Toasts',
-          children: [
-            AppButton(
-              text: 'Show Toast (Bottom)',
-              onPressed: () {
-                AppToast.info(
-                  context,
-                  message: 'This is a toast message',
-                  position: ToastPosition.bottom,
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Show Toast (Top)',
-              onPressed: () {
-                AppToast.success(
-                  context,
-                  message: 'Saved successfully',
-                  position: ToastPosition.top,
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Dialogs',
-          children: [
-            AppButton(
-              text: 'Show Dialog',
-              onPressed: () {
-                AppDialog.show(
-                  context,
-                  title: 'Dialog Title',
-                  contentText:
-                      'This is a standard dialog with customizable content.',
-                  actions: [
-                    AppButton.text(
-                      text: 'Cancel',
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    AppButton(
-                      text: 'OK',
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Confirm Dialog',
-              onPressed: () async {
-                final confirmed = await AppDialog.confirm(
-                  context,
-                  title: 'Confirm Action',
-                  message: 'Are you sure you want to proceed?',
-                );
-                if (confirmed && context.mounted) {
-                  AppSnackbar.success(context, message: 'Confirmed!');
-                }
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Delete Confirmation',
-              onPressed: () async {
-                await AppDialog.confirmDelete(
-                  context,
-                  title: 'Delete Item',
-                  message: 'This action cannot be undone.',
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Alert Dialog',
-              onPressed: () {
-                AppDialog.alert(
-                  context,
-                  title: 'Information',
-                  message: 'This is an informational alert.',
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Bottom Sheets',
-          children: [
-            AppButton(
-              text: 'Show Bottom Sheet',
-              onPressed: () {
-                AppBottomSheet.show(
-                  context,
-                  builder: (context) => Padding(
-                    padding: AppSpacing.paddingLG,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Bottom Sheet', style: theme.textTheme.titleLarge),
-                        const SizedBox(height: AppSpacing.md),
-                        const Text(
-                          'This is a bottom sheet with custom content.',
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        AppButton(
-                          text: 'Close',
-                          isFullWidth: true,
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Show Options',
-              onPressed: () {
-                AppBottomSheet.showOptions<String>(
-                  context,
-                  title: 'Choose an option',
-                  options: [
-                    const BottomSheetOption(
-                      title: 'Edit',
-                      subtitle: 'Modify this item',
-                      icon: Icons.edit,
-                      value: 'edit',
-                    ),
-                    const BottomSheetOption(
-                      title: 'Share',
-                      subtitle: 'Share with others',
-                      icon: Icons.share,
-                      value: 'share',
-                    ),
-                    const BottomSheetOption(
-                      title: 'Delete',
-                      subtitle: 'Remove this item',
-                      icon: Icons.delete,
-                      value: 'delete',
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              text: 'Scrollable Sheet',
-              onPressed: () {
-                AppBottomSheet.showScrollable(
-                  context,
-                  title: 'Scrollable Content',
-                  builder: (context) => Column(
-                    children: List.generate(
-                      20,
-                      (index) => ListTile(title: Text('Item ${index + 1}')),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// States Showcase
-class StatesShowcase extends StatefulWidget {
-  const StatesShowcase({super.key});
-
-  @override
-  State<StatesShowcase> createState() => _StatesShowcaseState();
-}
-
-class _StatesShowcaseState extends State<StatesShowcase> {
-  String _currentState = 'empty';
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      children: [
-        Container(
-          padding: AppSpacing.pagePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Empty & Error States',
-                style: theme.textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  FilterChip(
-                    label: const Text('Empty'),
-                    selected: _currentState == 'empty',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'empty');
-                    },
-                  ),
-                  FilterChip(
-                    label: const Text('Error'),
-                    selected: _currentState == 'error',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'error');
-                    },
-                  ),
-                  FilterChip(
-                    label: const Text('Network Error'),
-                    selected: _currentState == 'network',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'network');
-                    },
-                  ),
-                  FilterChip(
-                    label: const Text('Coming Soon'),
-                    selected: _currentState == 'coming_soon',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'coming_soon');
-                    },
-                  ),
-                  FilterChip(
-                    label: const Text('Maintenance'),
-                    selected: _currentState == 'maintenance',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'maintenance');
-                    },
-                  ),
-                  FilterChip(
-                    label: const Text('No Permission'),
-                    selected: _currentState == 'no_permission',
-                    onSelected: (selected) {
-                      setState(() => _currentState = 'no_permission');
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(child: _buildCurrentState()),
-      ],
+            )
+          : null,
     );
   }
 
-  Widget _buildCurrentState() {
-    switch (_currentState) {
-      case 'empty':
-        return const AppEmptyState(
-          icon: Icons.inbox_outlined,
-          title: 'No items yet',
-          message: 'Start by adding your first item.',
-          actionText: 'Add Item',
-        );
-      case 'error':
-        return AppErrorState(
-          title: 'Something went wrong',
-          message: 'We couldn\'t load the data. Please try again.',
-          onRetry: () {
-            AppSnackbar.info(context, message: 'Retrying...');
-          },
-        );
-      case 'network':
-        return AppNetworkErrorState(
-          onRetry: () {
-            AppSnackbar.info(context, message: 'Checking connection...');
-          },
-        );
-      case 'coming_soon':
-        return const AppComingSoonState();
-      case 'maintenance':
-        return const AppMaintenanceState();
-      case 'no_permission':
-        return AppNoPermissionState(
-          onRequestPermission: () {
-            AppSnackbar.info(context, message: 'Requesting permission...');
-          },
-        );
+  Widget _buildContent() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildOverview();
+      case 1:
+        return _buildComponents();
+      case 2:
+        return _buildAbout();
+      case 3:
+        return _buildTest();
       default:
         return const SizedBox();
     }
   }
-}
 
-// Education Showcase
-class EducationShowcase extends StatefulWidget {
-  const EducationShowcase({super.key});
-
-  @override
-  State<EducationShowcase> createState() => _EducationShowcaseState();
-}
-
-class _EducationShowcaseState extends State<EducationShowcase> {
-  DateTime? _selectedDate;
-  DateTime _focusedDate = DateTime.now();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
+  Widget _buildOverview() {
     return ListView(
       padding: AppSpacing.pagePadding,
       children: [
-        Text('Education Widgets', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Welcome to edu_ui_kit Gallery',
+          style: context.textTheme.headlineMedium,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'A comprehensive UI kit for education apps with 55+ components',
+          style: context.textTheme.bodyLarge?.copyWith(
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
 
-        _Section(
-          title: 'Course Cards',
+        // Stats cards
+        GridView.count(
+          crossAxisCount: context.isSmallScreen ? 2 : 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 1.2,
           children: [
-            CourseCard(
-              title: 'Advanced Mathematics',
-              subtitle: 'Calculus & Linear Algebra',
-              instructor: 'Dr. Jane Smith',
-              students: 45,
-              progress: 0.65,
-              onTap: () {
-                AppSnackbar.info(context, message: 'Opening course...');
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            CourseCard(
-              title: 'Introduction to Physics',
-              subtitle: 'Classical Mechanics',
-              instructor: 'Prof. John Doe',
-              students: 38,
-              progress: 0.25,
-              backgroundColor: Colors.deepPurple.shade100,
-              onTap: () {},
-            ),
+            _buildStatCard('55+', 'Components', Icons.widgets_outlined),
+            _buildStatCard('16', 'Categories', Icons.category_outlined),
+            _buildStatCard('100%', 'Documented', Icons.description_outlined),
+            _buildStatCard('M3', 'Design', Icons.palette_outlined),
           ],
         ),
 
         const SizedBox(height: AppSpacing.xl),
 
-        _Section(
-          title: 'Grade Cards',
-          children: [
-            GradeCard(
-              subject: 'Mathematics',
-              grade: 'A',
-              score: 95,
-              totalScore: 100,
-              percentage: 95,
-              onTap: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            GradeCard(
-              subject: 'Physics',
-              grade: 'B+',
-              score: 87,
-              totalScore: 100,
-              percentage: 87,
-              onTap: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            GradeCard(
-              subject: 'Chemistry',
-              grade: 'A-',
-              score: 92,
-              totalScore: 100,
-              percentage: 92,
-              onTap: () {},
-            ),
-          ],
+        Text('Quick Links', style: context.textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.md),
+
+        AppCard.outlined(
+          onTap: () => setState(() => _selectedIndex = 1),
+          child: ListTile(
+            leading: const Icon(Icons.explore),
+            title: const Text('Browse Components'),
+            subtitle: const Text('Explore all available components'),
+            trailing: const Icon(Icons.chevron_right),
+          ),
         ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Attendance Card',
-          children: [
-            AttendanceCard(
-              present: 42,
-              total: 50,
-              onTap: () {
-                AppSnackbar.info(
-                  context,
-                  message: 'Viewing attendance details...',
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Assignment Cards',
-          children: [
-            AssignmentCard(
-              title: 'Math Homework Chapter 5',
-              subject: 'Mathematics',
-              dueDate: DateTime.now().add(const Duration(days: 2)),
-              status: AssignmentStatus.pending,
-              onTap: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AssignmentCard(
-              title: 'Physics Lab Report',
-              subject: 'Physics',
-              dueDate: DateTime.now().subtract(const Duration(days: 1)),
-              status: AssignmentStatus.pending,
-              onTap: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AssignmentCard(
-              title: 'Chemistry Quiz',
-              subject: 'Chemistry',
-              submittedDate: DateTime.now().subtract(const Duration(days: 3)),
-              grade: 'A',
-              status: AssignmentStatus.graded,
-              onTap: () {},
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Student Avatars',
-          children: [
-            Row(
-              children: [
-                const StudentAvatar(
-                  name: 'John Doe',
-                  size: 56,
-                  showOnlineStatus: true,
-                  isOnline: true,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                const StudentAvatar(
-                  name: 'Jane Smith',
-                  size: 56,
-                  showOnlineStatus: true,
-                  isOnline: false,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                const StudentAvatar(
-                  name: 'Bob Wilson',
-                  size: 56,
-                  showOnlineStatus: true,
-                  isOnline: true,
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Calendar',
-          children: [
-            AppCalendar(
-              selectedDay: _selectedDate,
-              focusedDay: _focusedDate,
-              onDaySelected: (selected, focused) {
-                setState(() {
-                  _selectedDate = selected;
-                  _focusedDate = focused;
-                });
-                AppSnackbar.info(
-                  context,
-                  message:
-                      'Selected: ${selected.day}/${selected.month}/${selected.year}',
-                );
-              },
-              events: {
-                DateTime.now(): ['Math Class', 'Assignment Due'],
-                DateTime.now().add(const Duration(days: 2)): ['Physics Exam'],
-                DateTime.now().add(const Duration(days: 5)): ['Chemistry Lab'],
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'Date Pickers',
-          children: [
-            AppDatePicker(
-              label: 'Due Date',
-              selectedDate: _selectedDate,
-              onDateSelected: (date) {
-                setState(() => _selectedDate = date);
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppDateRangePicker(
-              label: 'Semester Period',
-              hint: 'Select start and end date',
-              onRangeSelected: (start, end) {
-                AppSnackbar.success(
-                  context,
-                  message:
-                      'Range selected: ${start.day}/${start.month} - ${end.day}/${end.month}',
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(
-          title: 'List Tiles',
-          children: [
-            const AppListTile(
-              title: 'Course Materials',
-              subtitle: 'Download study resources',
-              leading: Icon(Icons.folder_outlined),
-              trailing: Icon(Icons.chevron_right),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppExpandableTile(
-              title: 'Week 1: Introduction',
-              subtitle: '5 lessons',
-              leading: const Icon(Icons.play_circle_outline),
-              children: [
-                const AppListTile(
-                  title: 'Lesson 1: Overview',
-                  leading: Icon(Icons.play_arrow),
-                ),
-                const AppListTile(
-                  title: 'Lesson 2: Fundamentals',
-                  leading: Icon(Icons.play_arrow),
-                ),
-                const AppListTile(
-                  title: 'Lesson 3: Practice',
-                  leading: Icon(Icons.play_arrow),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            NotificationTile(
-              title: 'New assignment posted',
-              message:
-                  'Math homework for Chapter 5 is now available. Due date: Dec 15',
-              timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-              isRead: false,
-              type: NotificationType.assignment,
-              onTap: () {},
-              onMarkRead: () {},
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            NotificationTile(
-              title: 'Grade published',
-              message: 'Your Physics quiz has been graded. Score: 92/100',
-              timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-              isRead: true,
-              type: NotificationType.grade,
-              onTap: () {},
-            ),
-          ],
+        const SizedBox(height: AppSpacing.sm),
+        AppCard.outlined(
+          onTap: () {
+            AppBottomSheet.show(
+              context,
+              builder: (_) => _buildQuickStartGuide(),
+            );
+          },
+          child: const ListTile(
+            leading: Icon(Icons.rocket_launch),
+            title: Text('Quick Start'),
+            subtitle: Text('Get started with edu_ui_kit'),
+            trailing: Icon(Icons.chevron_right),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatCard(String value, String label, IconData icon) {
+    return AppCard.filled(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 32, color: context.colorScheme.primary),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: context.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: context.colorScheme.primary,
+            ),
+          ),
+          Text(
+            label,
+            style: context.textTheme.bodySmall?.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComponents() {
+    return Column(
+      children: [
+        // Search bar
+        Padding(
+          padding: AppSpacing.pagePadding,
+          child: AppTextField(
+            hint: 'Search components...',
+            prefixIcon: Icons.search,
+            onChanged: (value) => setState(() => _searchQuery = value),
+          ),
+        ),
+
+        // Component list
+        Expanded(
+          child: ListView.builder(
+            padding: AppSpacing.pagePadding,
+            itemCount: _filteredCategories.length,
+            itemBuilder: (context, index) {
+              final category = _filteredCategories[index];
+              return _buildCategoryCard(category);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryCard(ComponentCategory category) {
+    return AppCard.outlined(
+      child: AppExpandableTile(
+        title: category.name,
+        subtitle: '${category.components.length} components',
+        leading: Icon(category.icon),
+        children: category.components.map((component) {
+          return AppListTile(
+            title: component.name,
+            subtitle: component.description,
+            trailing: const Icon(Icons.code),
+            onTap: () => _showComponentDetail(component),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void _showComponentDetail(ComponentItem component) {
+    AppDialog.show(
+      context,
+      title: component.name,
+      contentText: component.description,
+      actions: [
+        AppButton.text(text: 'Close', onPressed: () => Navigator.pop(context)),
+        AppButton(
+          text: 'View Example',
+          onPressed: () {
+            Navigator.pop(context);
+            AppSnackbar.info(context, message: 'Example coming soon!');
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAbout() {
+    return ListView(
+      padding: AppSpacing.pagePadding,
+      children: [
+        Text('About edu_ui_kit', style: context.textTheme.headlineMedium),
+        const SizedBox(height: AppSpacing.lg),
+
+        const Text(
+          'edu_ui_kit is a comprehensive Flutter UI package designed specifically for education apps. '
+          'It provides beautifully designed components with smooth animations, flexible theming, '
+          'and education-specific widgets.',
+        ),
+
+        const SizedBox(height: AppSpacing.xl),
+
+        Text('Features', style: context.textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.md),
+
+        _buildFeatureItem('Material Design 3', 'Latest design system'),
+        _buildFeatureItem('55+ Components', 'Complete UI coverage'),
+        _buildFeatureItem('Flexible Theming', 'Easy customization'),
+        _buildFeatureItem('Smooth Animations', 'Polished interactions'),
+        _buildFeatureItem('Adaptive Widgets', 'iOS/Android support'),
+        _buildFeatureItem('Well Documented', 'Comprehensive guides'),
+
+        const SizedBox(height: AppSpacing.xl),
+
+        AppButton(
+          text: 'View Documentation',
+          icon: Icons.book_outlined,
+          isFullWidth: true,
+          onPressed: () {
+            AppSnackbar.info(context, message: 'Opening documentation...');
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureItem(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, color: context.colorScheme.primary),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: context.textTheme.titleSmall),
+                Text(
+                  subtitle,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStartGuide() {
+    return Padding(
+      padding: AppSpacing.bottomSheetPadding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Quick Start Guide', style: context.textTheme.headlineSmall),
+          const SizedBox(height: AppSpacing.lg),
+          const Text('1. Add to pubspec.yaml'),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: AppSpacing.paddingSM,
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: const Text(
+              'dependencies:\n  edu_ui_kit:\n    git: ...',
+              style: TextStyle(fontFamily: 'monospace'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Text('2. Import and use'),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: AppSpacing.paddingSM,
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: const Text(
+              "import 'package:edu_ui_kit/edu_ui_kit.dart';",
+              style: TextStyle(fontFamily: 'monospace'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppButton(
+            text: 'Got it!',
+            isFullWidth: true,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTest() {
+    return Padding(
+      padding: AppSpacing.paddingMD,
+      child: SingleChildScrollView(
+        child: Column(
+          spacing: 16,
+          children: [
+            AppFileUpload(onFilesSelected: (files) {}),
+            const Divider(),
+            AppFilePicker(label: 'Pick Image', onFilePicked: (file) {}),
+            FilePreviewCard(
+              file: UploadFile(
+                name: 'My Document',
+                size: 1024 * 1024 * 2,
+                extension: 'jpeg',
+              ),
+            ),
+            const Divider(),
+            SwitchListTile(
+              value: true,
+              onChanged: (value) {},
+              title: const Text('Switch list tile'),
+              subtitle: const Text('Hello world - ON'),
+            ),
+            SwitchListTile(
+              value: false,
+              onChanged: (value) {},
+              title: const Text('Switch list tile'),
+              subtitle: const Text('Hello world - OFF'),
+            ),
+
+            const Divider(),
+
+            AppBottomBar(
+              items: [
+                BottomAppBarItem(icon: Icons.first_page, onTap: () {}),
+                BottomAppBarItem(icon: Icons.pages, onTap: () {}),
+                BottomAppBarItem(icon: Icons.last_page, onTap: () {}),
+                BottomAppBarItem(icon: Icons.more_vert, onTap: () {}),
+              ],
+            ),
+
+            const Divider(),
+
+            Text(800000000.withCommas),
+            Text("hello world".capitalizeWords),
+            Text("hello world".initials),
+            Text("hello world".truncate(4)),
+
+            const Divider(),
+
+            SizedBox(
+              height: 250,
+              child: GradeTable(
+                grades: [
+                  GradeEntry(subject: 'Math', grade: 'A', score: 95),
+                  GradeEntry(subject: 'Physics', grade: 'B+', score: 87),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-// Helper widget for sections
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.children});
+class ComponentCategory {
+  final String name;
+  final IconData icon;
+  final List<ComponentItem> components;
 
-  final String title;
-  final List<Widget> children;
+  ComponentCategory({
+    required this.name,
+    required this.icon,
+    required this.components,
+  });
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+class ComponentItem {
+  final String name;
+  final String description;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        ...children,
-      ],
-    );
-  }
+  ComponentItem(this.name, this.description);
 }

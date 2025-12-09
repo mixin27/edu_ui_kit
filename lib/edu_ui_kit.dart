@@ -112,5 +112,17 @@ export 'src/components/adaptive/adaptive_widgets.dart';
 // Data table
 export 'src/components/tables/data_table.dart';
 
+// Chat
+export 'src/components/chat/chat_widgets.dart';
+
+// File upload
+export 'src/components/upload/file_upload.dart';
+
+// Rich text editor
+export 'src/components/editor/rich_text_editor.dart';
+
 // Utilities
 export 'src/utils/utilities.dart';
+
+// Re-export
+export 'package:table_calendar/table_calendar.dart';
