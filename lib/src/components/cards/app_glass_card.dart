@@ -103,14 +103,16 @@ class _AppGlassCardState extends State<AppGlassCard>
         color: colorScheme.surface.withValues(alpha: widget.opacity),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: Colors.white.withValues(alpha: widget.borderOpacity),
-          width: 1,
+          color: _isHovered
+              ? Colors.white.withValues(alpha: widget.borderOpacity * 1.5)
+              : Colors.white.withValues(alpha: widget.borderOpacity),
+          width: _isHovered ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: _isHovered ? 0.15 : 0.1),
+            blurRadius: _isHovered ? 25 : 20,
+            offset: Offset(0, _isHovered ? 12 : 10),
           ),
         ],
       ),

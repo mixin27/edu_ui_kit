@@ -1,20 +1,23 @@
+import 'package:edu_ui_kit_example/screens/showcasing_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:edu_ui_kit/edu_ui_kit.dart';
-import 'package:flutter/material.dart' hide PaginatedDataTable;
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'screens/showcasing_screen.dart';
-
+/// Complete gallery app showcasing all edu_ui_kit components
+///
+/// Run with: flutter run -t lib/gallery/main.dart
 void main() {
-  runApp(const EduUIKitGalleryApp());
+  runApp(const EduUIKitGallery());
 }
 
-class EduUIKitGalleryApp extends StatefulWidget {
-  const EduUIKitGalleryApp({super.key});
+class EduUIKitGallery extends StatefulWidget {
+  const EduUIKitGallery({super.key});
 
   @override
-  State<EduUIKitGalleryApp> createState() => _EduUIKitGalleryAppState();
+  State<EduUIKitGallery> createState() => _EduUIKitGalleryState();
 }
 
-class _EduUIKitGalleryAppState extends State<EduUIKitGalleryApp> {
+class _EduUIKitGalleryState extends State<EduUIKitGallery> {
   ThemeMode _themeMode = ThemeMode.light;
   ColorTokens _colorTokens = ColorTokens();
 
@@ -35,11 +38,17 @@ class _EduUIKitGalleryAppState extends State<EduUIKitGalleryApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'edu_ui_kit Gallery',
       theme: AppTheme.lightTheme(colors: _colorTokens),
       darkTheme: AppTheme.darkTheme(colors: _colorTokens),
       themeMode: _themeMode,
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
       home: GalleryHome(
         onToggleTheme: _toggleTheme,
         onChangeTheme: _changeTheme,
@@ -251,35 +260,9 @@ class _GalleryHomeState extends State<GalleryHome> {
 
   @override
   Widget build(BuildContext context) {
-    final isMediumScreen = context.isMediumScreen;
+    final isLargeScreen = context.isLargeScreen;
 
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  end: Alignment.topCenter,
-                  begin: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(context).colorScheme.secondary,
-                    Theme.of(
-                      context,
-                    ).colorScheme.secondary.withValues(alpha: 0.8),
-                    Theme.of(
-                      context,
-                    ).colorScheme.secondary.withValues(alpha: 0.4),
-                  ],
-                ),
-              ),
-              child: Text('Drawer'),
-            ),
-            AppListTile(title: 'Home', onTap: () {}),
-          ],
-        ),
-      ),
       appBar: AppBar(
         title: const Text('edu_ui_kit Gallery'),
         actions: [
@@ -352,21 +335,21 @@ class _GalleryHomeState extends State<GalleryHome> {
           AppIconButton(
             icon: Icons.widgets_outlined,
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.push(
+                context,
                 MaterialPageRoute(
                   builder: (context) =>
                       ShowcaseHome(onToggleTheme: widget.onToggleTheme),
                 ),
               );
             },
-            tooltip: 'Toggle theme',
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
       ),
       body: Row(
         children: [
-          if (isMediumScreen)
+          if (isLargeScreen)
             NavigationRail(
               selectedIndex: _selectedIndex,
               onDestinationSelected: (index) {
@@ -389,17 +372,12 @@ class _GalleryHomeState extends State<GalleryHome> {
                   selectedIcon: Icon(Icons.info),
                   label: Text('About'),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.bug_report_outlined),
-                  selectedIcon: Icon(Icons.bug_report),
-                  label: Text('Test'),
-                ),
               ],
             ),
           Expanded(child: _buildContent()),
         ],
       ),
-      bottomNavigationBar: !isMediumScreen
+      bottomNavigationBar: !isLargeScreen
           ? NavigationBar(
               selectedIndex: _selectedIndex,
               onDestinationSelected: (index) {
@@ -421,11 +399,6 @@ class _GalleryHomeState extends State<GalleryHome> {
                   selectedIcon: Icon(Icons.info),
                   label: 'About',
                 ),
-                NavigationDestination(
-                  icon: Icon(Icons.bug_report_outlined),
-                  selectedIcon: Icon(Icons.bug_report),
-                  label: 'Test',
-                ),
               ],
             )
           : null,
@@ -440,8 +413,6 @@ class _GalleryHomeState extends State<GalleryHome> {
         return _buildComponents();
       case 2:
         return _buildAbout();
-      case 3:
-        return _buildTest();
       default:
         return const SizedBox();
     }
@@ -471,7 +442,7 @@ class _GalleryHomeState extends State<GalleryHome> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: AppSpacing.md,
           crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1.2,
+          childAspectRatio: 1.3,
           children: [
             _buildStatCard('55+', 'Components', Icons.widgets_outlined),
             _buildStatCard('16', 'Categories', Icons.category_outlined),
@@ -585,20 +556,11 @@ class _GalleryHomeState extends State<GalleryHome> {
   }
 
   void _showComponentDetail(ComponentItem component) {
-    AppDialog.show(
+    Navigator.push(
       context,
-      title: component.name,
-      contentText: component.description,
-      actions: [
-        AppButton.text(text: 'Close', onPressed: () => Navigator.pop(context)),
-        AppButton(
-          text: 'View Example',
-          onPressed: () {
-            Navigator.pop(context);
-            AppSnackbar.info(context, message: 'Example coming soon!');
-          },
-        ),
-      ],
+      MaterialPageRoute(
+        builder: (_) => ComponentDetailScreen(component: component),
+      ),
     );
   }
 
@@ -713,72 +675,6 @@ class _GalleryHomeState extends State<GalleryHome> {
       ),
     );
   }
-
-  Widget _buildTest() {
-    return Padding(
-      padding: AppSpacing.paddingMD,
-      child: SingleChildScrollView(
-        child: Column(
-          spacing: 16,
-          children: [
-            AppFileUpload(onFilesSelected: (files) {}),
-            const Divider(),
-            AppFilePicker(label: 'Pick Image', onFilePicked: (file) {}),
-            FilePreviewCard(
-              file: UploadFile(
-                name: 'My Document',
-                size: 1024 * 1024 * 2,
-                extension: 'jpeg',
-              ),
-            ),
-            const Divider(),
-            SwitchListTile(
-              value: true,
-              onChanged: (value) {},
-              title: const Text('Switch list tile'),
-              subtitle: const Text('Hello world - ON'),
-            ),
-            SwitchListTile(
-              value: false,
-              onChanged: (value) {},
-              title: const Text('Switch list tile'),
-              subtitle: const Text('Hello world - OFF'),
-            ),
-
-            const Divider(),
-
-            AppBottomBar(
-              items: [
-                BottomAppBarItem(icon: Icons.first_page, onTap: () {}),
-                BottomAppBarItem(icon: Icons.pages, onTap: () {}),
-                BottomAppBarItem(icon: Icons.last_page, onTap: () {}),
-                BottomAppBarItem(icon: Icons.more_vert, onTap: () {}),
-              ],
-            ),
-
-            const Divider(),
-
-            Text(800000000.withCommas),
-            Text("hello world".capitalizeWords),
-            Text("hello world".initials),
-            Text("hello world".truncate(4)),
-
-            const Divider(),
-
-            SizedBox(
-              height: 250,
-              child: GradeTable(
-                grades: [
-                  GradeEntry(subject: 'Math', grade: 'A', score: 95),
-                  GradeEntry(subject: 'Physics', grade: 'B+', score: 87),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class ComponentCategory {
@@ -798,4 +694,451 @@ class ComponentItem {
   final String description;
 
   ComponentItem(this.name, this.description);
+}
+
+/// Component detail screen with live examples
+class ComponentDetailScreen extends StatefulWidget {
+  const ComponentDetailScreen({super.key, required this.component});
+
+  final ComponentItem component;
+
+  @override
+  State<ComponentDetailScreen> createState() => _ComponentDetailScreenState();
+}
+
+class _ComponentDetailScreenState extends State<ComponentDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.component.name)),
+      body: ListView(
+        padding: AppSpacing.pagePadding,
+        children: [
+          Text(
+            widget.component.description,
+            style: context.textTheme.bodyLarge?.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          Text('Live Example', style: context.textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.md),
+
+          // Render example based on component name
+          _buildExample(widget.component.name),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          AppCard.outlined(
+            child: Padding(
+              padding: AppSpacing.paddingMD,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.code, color: context.colorScheme.primary),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text('Usage', style: context.textTheme.titleMedium),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    padding: AppSpacing.paddingSM,
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      _getCodeExample(widget.component.name),
+                      style: const TextStyle(fontFamily: 'monospace'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExample(String componentName) {
+    // Return appropriate example based on component name
+    switch (componentName.toLowerCase()) {
+      case 'appbutton':
+        return _ButtonExample();
+      case 'appcard':
+        return _CardExample();
+      case 'apptextfield':
+        return _TextFieldExample();
+      case 'apploadingindicator':
+        return _LoadingExample();
+      case 'snackbars':
+        return _SnackbarExample();
+      case 'dialogs':
+        return _DialogExample();
+      case 'empty state':
+        return _EmptyStateExample();
+      case 'course card':
+        return _CourseCardExample();
+      case 'grade card':
+        return _GradeCardExample();
+      case 'chat bubble':
+        return _ChatBubbleExample();
+      case 'file upload':
+        return _FileUploadExample();
+      case 'rich editor':
+        return _RichEditorExample();
+      default:
+        return AppCard.filled(
+          child: Center(
+            child: Text('Interactive example for ${widget.component.name}'),
+          ),
+        );
+    }
+  }
+
+  String _getCodeExample(String componentName) {
+    switch (componentName.toLowerCase()) {
+      case 'appbutton':
+        return '''AppButton(
+  text: 'Click me',
+  onPressed: () {},
+)''';
+      case 'appcard':
+        return '''AppCard.elevated(
+  child: Text('Card content'),
+  onTap: () {},
+)''';
+      case 'apptextfield':
+        return '''AppTextField(
+  label: 'Email',
+  prefixIcon: Icons.email,
+)''';
+      case 'snackbars':
+        return '''AppSnackbar.success(
+  context,
+  message: 'Success!',
+)''';
+      case 'course card':
+        return '''CourseCard(
+  title: 'Math 101',
+  instructor: 'Dr. Smith',
+  progress: 0.7,
+)''';
+      default:
+        return '// Example code for $componentName';
+    }
+  }
+}
+
+// Example widgets for each component type
+class _ButtonExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppButton(
+          text: 'Filled Button',
+          onPressed: () {
+            AppSnackbar.info(context, message: 'Button clicked!');
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton.outlined(
+          text: 'Outlined Button',
+          icon: Icons.add,
+          onPressed: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton.text(text: 'Text Button', onPressed: () {}),
+      ],
+    );
+  }
+}
+
+class _CardExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppCard.elevated(
+          onTap: () {
+            AppSnackbar.info(context, message: 'Card tapped!');
+          },
+          child: const Padding(
+            padding: AppSpacing.paddingMD,
+            child: Text('Tap me! I have hover animation.'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppCard.outlined(
+          child: const Padding(
+            padding: AppSpacing.paddingMD,
+            child: Text('Outlined card with border'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TextFieldExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        AppTextField(
+          label: 'Name',
+          hint: 'Enter your name',
+          prefixIcon: Icons.person,
+        ),
+        SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: 'Email',
+          hint: 'your@email.com',
+          prefixIcon: Icons.email,
+        ),
+      ],
+    );
+  }
+}
+
+class _LoadingExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        AppLoadingIndicator.small(),
+        SizedBox(height: AppSpacing.md),
+        AppLoadingIndicator(),
+        SizedBox(height: AppSpacing.md),
+        AppLoadingIndicator.large(text: 'Loading...'),
+      ],
+    );
+  }
+}
+
+class _SnackbarExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppButton(
+          text: 'Show Success',
+          onPressed: () {
+            AppSnackbar.success(context, message: 'Operation successful!');
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          text: 'Show Error',
+          onPressed: () {
+            AppSnackbar.error(context, message: 'Something went wrong');
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          text: 'Show Warning',
+          onPressed: () {
+            AppSnackbar.warning(context, message: 'Please review your input');
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _DialogExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppButton(
+          text: 'Show Alert',
+          onPressed: () {
+            AppDialog.alert(
+              context,
+              title: 'Alert',
+              message: 'This is an alert dialog',
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
+          text: 'Show Confirm',
+          onPressed: () async {
+            final confirmed = await AppDialog.confirm(
+              context,
+              title: 'Confirm',
+              message: 'Are you sure?',
+            );
+            if (confirmed && context.mounted) {
+              AppSnackbar.success(context, message: 'Confirmed!');
+            }
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyStateExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const AppEmptyState(
+      icon: Icons.inbox,
+      title: 'No items',
+      message: 'Start by adding your first item',
+    );
+  }
+}
+
+class _CourseCardExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return CourseCard(
+      title: 'Advanced Mathematics',
+      subtitle: 'Calculus & Algebra',
+      instructor: 'Dr. Jane Smith',
+      students: 45,
+      progress: 0.65,
+      onTap: () {
+        AppSnackbar.info(context, message: 'Opening course...');
+      },
+    );
+  }
+}
+
+class _GradeCardExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GradeCard(
+          subject: 'Mathematics',
+          grade: 'A',
+          score: 95,
+          totalScore: 100,
+          percentage: 95,
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GradeCard(
+          subject: 'Physics',
+          grade: 'B+',
+          score: 87,
+          totalScore: 100,
+          percentage: 87,
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+}
+
+class _ChatBubbleExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ChatBubble(
+          message: 'Hello! How can I help you today?',
+          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
+          isMe: false,
+          senderName: 'Instructor',
+        ),
+        ChatBubble(
+          message: 'I have a question about the homework',
+          timestamp: DateTime.now().subtract(const Duration(minutes: 3)),
+          isMe: true,
+          isRead: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _FileUploadExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AppFileUpload(
+      onFilesSelected: (files) {
+        AppSnackbar.success(
+          context,
+          message: '${files.length} file(s) selected',
+        );
+      },
+      acceptedTypes: const ['pdf', 'doc', 'docx'],
+      maxFileSize: 10 * 1024 * 1024,
+    );
+  }
+}
+
+class _RichEditorExample extends StatefulWidget {
+  @override
+  State<_RichEditorExample> createState() => _RichEditorExampleState();
+}
+
+class _RichEditorExampleState extends State<_RichEditorExample> {
+  final _controller = AppRichTextEditorController(
+    initialText: 'Start typing here...',
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppRichTextEditor(
+          controller: _controller,
+          placeholder: 'Write something...',
+          minHeight: 150,
+          onChanged: () {
+            // Content changed
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton.outlined(
+                text: 'Get HTML',
+                onPressed: () {
+                  final html = _controller.toHtml();
+                  AppSnackbar.info(
+                    context,
+                    message: 'HTML: ${html.substring(0, 50)}...',
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: AppButton.outlined(
+                text: 'Get Text',
+                onPressed: () {
+                  final text = _controller.toPlainText();
+                  AppSnackbar.info(
+                    context,
+                    message: 'Text: ${text.substring(0, 50)}...',
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

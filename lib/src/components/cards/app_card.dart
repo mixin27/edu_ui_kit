@@ -188,12 +188,14 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
 
     switch (widget.variant) {
       case AppCardVariant.elevated:
+        final elevation = _isHovered ? _elevationAnimation.value : 0.0;
         return BoxDecoration(
           color: baseColor,
           borderRadius: AppRadius.cardRadius,
-          boxShadow: _isHovered
-              ? AppElevation.elevatedShadow
-              : AppElevation.cardShadow,
+          boxShadow: AppElevation.getShadow(
+            elevation + (_isHovered ? 4.0 : 2.0),
+            opacity: 0.1,
+          ),
         );
 
       case AppCardVariant.outlined:

@@ -118,8 +118,11 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
           showCheckboxColumn: widget.showCheckboxColumn,
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
+          headingRowColor: WidgetStateProperty.all(
+            colorScheme.surfaceContainerHighest,
+          ),
           columns: widget.columns.asMap().entries.map((entry) {
-            final index = entry.key;
+            final columnIndex = entry.key;
             final column = entry.value;
             return DataColumn(
               label: Text(
@@ -129,30 +132,66 @@ class _AppDataTableState<T> extends State<AppDataTable<T>> {
                 ),
               ),
               onSort: column.sortable
-                  ? (columnIndex, ascending) => _handleSort(columnIndex)
+                  ? (colIndex, ascending) => _handleSort(columnIndex)
                   : null,
             );
           }).toList(),
-          rows: widget.rows.map((item) {
-            final isSelected = _selectedRows.contains(item);
-            return DataRow(
-              selected: isSelected,
-              onSelectChanged: widget.showCheckboxColumn
-                  ? (selected) => _handleSelectRow(item, selected)
-                  : null,
-              cells: widget.columns.map((column) {
-                return DataCell(
-                  widget.cellBuilder(item, column.key),
-                  onTap: widget.onRowTap != null
-                      ? () => widget.onRowTap!(item)
-                      : null,
-                  onLongPress: widget.onRowLongPress != null
-                      ? () => widget.onRowLongPress!(item)
-                      : null,
-                );
-              }).toList(),
-            );
-          }).toList(),
+          rows: [
+            if (widget.showCheckboxColumn)
+              DataRow(
+                selected:
+                    _selectedRows.length == widget.rows.length &&
+                    widget.rows.isNotEmpty,
+                onSelectChanged: _handleSelectAll,
+                cells: [
+                  DataCell(Text('Select All')),
+                  ...List.generate(
+                    widget.columns.length - 1,
+                    (_) => const DataCell(Text('')),
+                  ),
+                ],
+              ),
+            ...widget.rows.map((item) {
+              final isSelected = _selectedRows.contains(item);
+              return DataRow(
+                selected: isSelected,
+                onSelectChanged: widget.showCheckboxColumn
+                    ? (selected) => _handleSelectRow(item, selected)
+                    : null,
+                cells: [
+                  ...widget.columns.map((column) {
+                    return DataCell(
+                      widget.cellBuilder(item, column.key),
+                      onTap: widget.onRowTap != null
+                          ? () => widget.onRowTap!(item)
+                          : null,
+                      onLongPress: widget.onRowLongPress != null
+                          ? () => widget.onRowLongPress!(item)
+                          : null,
+                    );
+                  }),
+                  if (widget.actions != null && widget.actions!.isNotEmpty)
+                    DataCell(
+                      PopupMenuButton<DataTableAction<T>>(
+                        itemBuilder: (context) => widget.actions!.map((action) {
+                          return PopupMenuItem(
+                            value: action,
+                            child: Row(
+                              children: [
+                                Icon(action.icon, size: 20),
+                                const SizedBox(width: AppSpacing.sm),
+                                Text(action.label),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onSelected: (action) => action.onPressed(item),
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ],
         ),
       ),
     );

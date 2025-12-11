@@ -126,3 +126,5 @@ export 'src/utils/utilities.dart';
 
 // Re-export
 export 'package:table_calendar/table_calendar.dart';
+export 'package:flutter_quill/flutter_quill.dart';
+export 'package:flutter_quill_extensions/flutter_quill_extensions.dart';

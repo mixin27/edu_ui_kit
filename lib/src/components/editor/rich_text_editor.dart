@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 
 import '../../theme/spacing.dart';
 
-/// A rich text editor with formatting toolbar
+/// A production-ready rich text editor powered by flutter_quill
 ///
 /// Example usage:
 /// ```dart
+/// final controller = AppRichTextEditorController();
+///
 /// AppRichTextEditor(
-///   controller: editorController,
+///   controller: controller,
 ///   placeholder: 'Start writing...',
-///   onChanged: (html) => saveContent(html),
+///   onChanged: () => saveContent(controller.toHtml()),
 /// )
+///
+/// // Get content
+/// String html = controller.toHtml();
+/// String plainText = controller.toPlainText();
 /// ```
 class AppRichTextEditor extends StatefulWidget {
   const AppRichTextEditor({
@@ -18,38 +26,51 @@ class AppRichTextEditor extends StatefulWidget {
     this.controller,
     this.placeholder = 'Start typing...',
     this.minHeight = 200,
-    this.maxHeight = 400,
+    this.maxHeight,
     this.onChanged,
     this.showToolbar = true,
     this.readOnly = false,
+    this.autoFocus = false,
   });
 
-  final RichTextEditorController? controller;
+  final AppRichTextEditorController? controller;
   final String placeholder;
   final double minHeight;
-  final double maxHeight;
-  final void Function(String)? onChanged;
+  final double? maxHeight;
+  final VoidCallback? onChanged;
   final bool showToolbar;
   final bool readOnly;
+  final bool autoFocus;
 
   @override
   State<AppRichTextEditor> createState() => _AppRichTextEditorState();
 }
 
 class _AppRichTextEditorState extends State<AppRichTextEditor> {
-  late RichTextEditorController _controller;
+  late AppRichTextEditorController _controller;
   late FocusNode _focusNode;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? RichTextEditorController();
+    _controller = widget.controller ?? AppRichTextEditorController();
+    _controller._quillController.readOnly = widget.readOnly;
+
     _focusNode = FocusNode();
+    _scrollController = ScrollController();
+
+    if (widget.autoFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
+    _scrollController.dispose();
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -63,384 +84,268 @@ class _AppRichTextEditorState extends State<AppRichTextEditor> {
 
     return Column(
       children: [
-        if (widget.showToolbar) _buildToolbar(context),
+        if (widget.showToolbar)
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppRadius.md),
+                topRight: Radius.circular(AppRadius.md),
+              ),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            child: QuillSimpleToolbar(
+              controller: _controller._quillController,
+              config: QuillSimpleToolbarConfig(
+                multiRowsDisplay: false,
+                showAlignmentButtons: true,
+                showBackgroundColorButton: false,
+                showCenterAlignment: true,
+                showCodeBlock: false,
+                showColorButton: true,
+                showDirection: false,
+                showDividers: true,
+                showFontFamily: false,
+                showFontSize: false,
+                showHeaderStyle: true,
+                showIndent: true,
+                showInlineCode: true,
+                showItalicButton: true,
+                showBoldButton: true,
+                showUnderLineButton: true,
+                showStrikeThrough: true,
+                showJustifyAlignment: true,
+                showLeftAlignment: true,
+                showLink: true,
+                showListBullets: true,
+                showListCheck: true,
+                showListNumbers: true,
+                showQuote: true,
+                showRedo: true,
+                showRightAlignment: true,
+                showSearchButton: false,
+                showSmallButton: false,
+                showSubscript: false,
+                showSuperscript: false,
+                showUndo: true,
+              ),
+            ),
+          ),
         Container(
           constraints: BoxConstraints(
             minHeight: widget.minHeight,
-            maxHeight: widget.maxHeight,
+            maxHeight: widget.maxHeight ?? double.infinity,
           ),
           decoration: BoxDecoration(
             color: colorScheme.surface,
             border: Border.all(
               color: colorScheme.outline.withValues(alpha: 0.2),
             ),
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: widget.showToolbar
+                ? const BorderRadius.only(
+                    bottomLeft: Radius.circular(AppRadius.md),
+                    bottomRight: Radius.circular(AppRadius.md),
+                  )
+                : BorderRadius.circular(AppRadius.md),
           ),
-          child: TextField(
-            controller: _controller._textController,
-            focusNode: _focusNode,
-            maxLines: null,
-            readOnly: widget.readOnly,
-            style: theme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              hintText: widget.placeholder,
-              border: InputBorder.none,
-              contentPadding: AppSpacing.paddingMD,
+          child: QuillEditor(
+            controller: _controller._quillController,
+            config: QuillEditorConfig(
+              autoFocus: widget.autoFocus,
+              placeholder: widget.placeholder,
+              padding: AppSpacing.paddingMD,
+              onTapDown: (details, p1) {
+                widget.onChanged?.call();
+                return false;
+              },
             ),
-            onChanged: (text) {
-              widget.onChanged?.call(_controller.getHtml());
-            },
+            focusNode: _focusNode,
+            scrollController: _scrollController,
           ),
         ),
       ],
     );
   }
-
-  Widget _buildToolbar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(AppRadius.md),
-          topRight: Radius.circular(AppRadius.md),
-        ),
-      ),
-      child: Wrap(
-        spacing: AppSpacing.xs,
-        runSpacing: AppSpacing.xs,
-        children: [
-          _ToolbarButton(
-            icon: Icons.format_bold,
-            tooltip: 'Bold',
-            isActive: _controller.isBold,
-            onPressed: () => _controller.toggleBold(),
-          ),
-          _ToolbarButton(
-            icon: Icons.format_italic,
-            tooltip: 'Italic',
-            isActive: _controller.isItalic,
-            onPressed: () => _controller.toggleItalic(),
-          ),
-          _ToolbarButton(
-            icon: Icons.format_underlined,
-            tooltip: 'Underline',
-            isActive: _controller.isUnderline,
-            onPressed: () => _controller.toggleUnderline(),
-          ),
-          const VerticalDivider(),
-          _ToolbarButton(
-            icon: Icons.format_list_bulleted,
-            tooltip: 'Bullet List',
-            onPressed: () => _controller.insertBulletList(),
-          ),
-          _ToolbarButton(
-            icon: Icons.format_list_numbered,
-            tooltip: 'Numbered List',
-            onPressed: () => _controller.insertNumberedList(),
-          ),
-          const VerticalDivider(),
-          _ToolbarButton(
-            icon: Icons.link,
-            tooltip: 'Insert Link',
-            onPressed: () => _showLinkDialog(context),
-          ),
-          _ToolbarButton(
-            icon: Icons.image,
-            tooltip: 'Insert Image',
-            onPressed: () => _showImageDialog(context),
-          ),
-          const VerticalDivider(),
-          _ToolbarButton(
-            icon: Icons.undo,
-            tooltip: 'Undo',
-            onPressed: () => _controller.undo(),
-          ),
-          _ToolbarButton(
-            icon: Icons.redo,
-            tooltip: 'Redo',
-            onPressed: () => _controller.redo(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showLinkDialog(BuildContext context) async {
-    final urlController = TextEditingController();
-    final textController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Insert Link'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: textController,
-              decoration: const InputDecoration(
-                labelText: 'Link Text',
-                hintText: 'Click here',
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: urlController,
-              decoration: const InputDecoration(
-                labelText: 'URL',
-                hintText: 'https://example.com',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              _controller.insertLink(urlController.text, textController.text);
-              Navigator.pop(context);
-            },
-            child: const Text('Insert'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showImageDialog(BuildContext context) async {
-    final urlController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Insert Image'),
-        content: TextField(
-          controller: urlController,
-          decoration: const InputDecoration(
-            labelText: 'Image URL',
-            hintText: 'https://example.com/image.jpg',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              _controller.insertImage(urlController.text);
-              Navigator.pop(context);
-            },
-            child: const Text('Insert'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _ToolbarButton extends StatelessWidget {
-  const _ToolbarButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    this.isActive = false,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return IconButton(
-      icon: Icon(icon),
-      tooltip: tooltip,
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: isActive
-            ? colorScheme.primaryContainer
-            : Colors.transparent,
-        foregroundColor: isActive
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurface,
-      ),
-    );
-  }
-}
-
-/// Controller for rich text editor
-class RichTextEditorController {
-  RichTextEditorController({String? initialText}) {
-    _textController = TextEditingController(text: initialText);
-  }
-
-  late TextEditingController _textController;
-  bool isBold = false;
-  bool isItalic = false;
-  bool isUnderline = false;
-
-  final List<String> _history = [];
-  int _historyIndex = -1;
-
-  void toggleBold() {
-    isBold = !isBold;
-    _applyFormatting();
-  }
-
-  void toggleItalic() {
-    isItalic = !isItalic;
-    _applyFormatting();
-  }
-
-  void toggleUnderline() {
-    isUnderline = !isUnderline;
-    _applyFormatting();
-  }
-
-  void insertBulletList() {
-    final text = _textController.text;
-    final selection = _textController.selection;
-    final newText =
-        '${text.substring(0, selection.start)}• ${text.substring(selection.end)}';
-    _textController.text = newText;
-    _saveHistory();
-  }
-
-  void insertNumberedList() {
-    final text = _textController.text;
-    final selection = _textController.selection;
-    final newText =
-        '${text.substring(0, selection.start)}1. ${text.substring(selection.end)}';
-    _textController.text = newText;
-    _saveHistory();
-  }
-
-  void insertLink(String url, String text) {
-    final currentText = _textController.text;
-    final selection = _textController.selection;
-    final linkText = '[${text.isEmpty ? url : text}]($url)';
-    final newText =
-        '${currentText.substring(0, selection.start)}$linkText${currentText.substring(selection.end)}';
-    _textController.text = newText;
-    _saveHistory();
-  }
-
-  void insertImage(String url) {
-    final text = _textController.text;
-    final selection = _textController.selection;
-    final newText =
-        '${text.substring(0, selection.start)}![Image]($url)${text.substring(selection.end)}';
-    _textController.text = newText;
-    _saveHistory();
-  }
-
-  void undo() {
-    if (_historyIndex > 0) {
-      _historyIndex--;
-      _textController.text = _history[_historyIndex];
+/// Controller for AppRichTextEditor
+class AppRichTextEditorController {
+  AppRichTextEditorController({String? initialText}) {
+    if (initialText != null && initialText.isNotEmpty) {
+      _quillController = QuillController(
+        document: Document()..insert(0, initialText),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+    } else {
+      _quillController = QuillController.basic();
     }
   }
 
-  void redo() {
-    if (_historyIndex < _history.length - 1) {
-      _historyIndex++;
-      _textController.text = _history[_historyIndex];
+  /// Create controller from HTML
+  factory AppRichTextEditorController.fromHtml(String html) {
+    final delta = _htmlToDelta(html);
+    return AppRichTextEditorController()
+      .._quillController = QuillController(
+        document: Document.fromDelta(delta),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+  }
+
+  late QuillController _quillController;
+
+  /// Get the quill controller for advanced usage
+  QuillController get quillController => _quillController;
+
+  /// Get plain text content
+  String toPlainText() {
+    return _quillController.document.toPlainText();
+  }
+
+  /// Get HTML content
+  String toHtml() {
+    return _deltaToHtml(_quillController.document.toDelta());
+  }
+
+  /// Get JSON content (for storage)
+  String toJson() {
+    return _quillController.document.toDelta().toJson().toString();
+  }
+
+  /// Load from JSON
+  void fromJson(String json) {
+    try {
+      final delta = Delta.fromJson(json as List);
+      _quillController.document = Document.fromDelta(delta);
+    } catch (e) {
+      debugPrint('Error loading JSON: $e');
     }
   }
 
-  String getHtml() {
-    // Convert markdown-like syntax to HTML
-    var html = _textController.text;
-
-    // Bold
-    html = html.replaceAllMapped(
-      RegExp(r'\*\*(.*?)\*\*'),
-      (match) => '<strong>${match.group(1)}</strong>',
-    );
-
-    // Italic
-    html = html.replaceAllMapped(
-      RegExp(r'\*(.*?)\*'),
-      (match) => '<em>${match.group(1)}</em>',
-    );
-
-    // Links
-    html = html.replaceAllMapped(
-      RegExp(r'\[(.*?)\]\((.*?)\)'),
-      (match) => '<a href="${match.group(2)}">${match.group(1)}</a>',
-    );
-
-    // Images
-    html = html.replaceAllMapped(
-      RegExp(r'!\[(.*?)\]\((.*?)\)'),
-      (match) => '<img src="${match.group(2)}" alt="${match.group(1)}" />',
-    );
-
-    return html;
+  /// Clear content
+  void clear() {
+    _quillController.clear();
   }
 
-  String getText() => _textController.text;
-
-  void _applyFormatting() {
-    // This is a simplified version - in production, you'd use a proper rich text library
-    _saveHistory();
+  /// Check if editor is empty
+  bool get isEmpty {
+    return _quillController.document.isEmpty();
   }
 
-  void _saveHistory() {
-    if (_historyIndex < _history.length - 1) {
-      _history.removeRange(_historyIndex + 1, _history.length);
+  /// Check if editor has text
+  bool get hasText {
+    return !isEmpty;
+  }
+
+  /// Insert text at current position
+  void insertText(String text) {
+    final index = _quillController.selection.baseOffset;
+    _quillController.document.insert(index, text);
+  }
+
+  /// Format selected text
+  void formatText({bool? bold, bool? italic, bool? underline}) {
+    if (bold != null) {
+      _quillController.formatSelection(Attribute.bold);
     }
-    _history.add(_textController.text);
-    _historyIndex = _history.length - 1;
+    if (italic != null) {
+      _quillController.formatSelection(Attribute.italic);
+    }
+    if (underline != null) {
+      _quillController.formatSelection(Attribute.underline);
+    }
+  }
+
+  /// Add listener for content changes
+  void addListener(VoidCallback listener) {
+    _quillController.addListener(listener);
+  }
+
+  /// Remove listener
+  void removeListener(VoidCallback listener) {
+    _quillController.removeListener(listener);
   }
 
   void dispose() {
-    _textController.dispose();
+    _quillController.dispose();
+  }
+
+  // Helper methods for HTML conversion
+  static Delta _htmlToDelta(String html) {
+    // Basic HTML to Delta conversion
+    // For production, consider using a proper HTML parser
+    final delta = Delta();
+
+    // Remove HTML tags for basic conversion
+    String text = html
+        .replaceAll(RegExp(r'<br\s*\/?>'), '\n')
+        .replaceAll(RegExp(r'<[^>]*>'), '');
+
+    delta.insert(text);
+    return delta;
+  }
+
+  static String _deltaToHtml(Delta delta) {
+    // Basic Delta to HTML conversion
+    final buffer = StringBuffer();
+
+    for (final op in delta.toList()) {
+      if (op.data is String) {
+        String text = op.data as String;
+
+        // Apply attributes
+        if (op.attributes != null) {
+          if (op.attributes!['bold'] != null) {
+            text = '<strong>$text</strong>';
+          }
+          if (op.attributes!['italic'] != null) {
+            text = '<em>$text</em>';
+          }
+          if (op.attributes!['underline'] != null) {
+            text = '<u>$text</u>';
+          }
+          if (op.attributes!['link'] != null) {
+            text = '<a href="${op.attributes!['link']}">$text</a>';
+          }
+        }
+
+        buffer.write(text.replaceAll('\n', '<br>'));
+      }
+    }
+
+    return buffer.toString();
   }
 }
 
 /// A read-only rich text viewer
-class AppRichTextViewer extends StatelessWidget {
-  const AppRichTextViewer({super.key, required this.html, this.textStyle});
+class AppRichTextViewer extends StatefulWidget {
+  const AppRichTextViewer({super.key, required this.controller, this.padding});
 
-  final String html;
-  final TextStyle? textStyle;
+  final AppRichTextEditorController controller;
+  final EdgeInsets? padding;
+
+  @override
+  State<AppRichTextViewer> createState() => _AppRichTextViewerState();
+}
+
+class _AppRichTextViewerState extends State<AppRichTextViewer> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller._quillController.readOnly = true;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    // Parse HTML and render - simplified version
-    // In production, use flutter_html or similar package
     return Container(
-      padding: AppSpacing.paddingMD,
-      child: Text(
-        _stripHtml(html),
-        style: textStyle ?? theme.textTheme.bodyLarge,
+      padding: widget.padding ?? AppSpacing.paddingMD,
+      child: QuillEditor(
+        controller: widget.controller._quillController,
+        config: QuillEditorConfig(padding: EdgeInsets.zero),
+        focusNode: FocusNode(),
+        scrollController: ScrollController(),
       ),
     );
-  }
-
-  String _stripHtml(String html) {
-    return html
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>');
   }
 }
